@@ -4,9 +4,9 @@ pragma experimental ABIEncoderV2;
 contract main{
     address admin;
 	enum Tier {Bronze, Silver, Gold, Diamond, Platinum}
-    
+
     struct GuildMaster{
-        address payable master; 
+        address payable master;
         string guild_id;
         uint aadhaar;
         string region_id;
@@ -14,7 +14,7 @@ contract main{
     }
 
     struct Player{
-        string player_id; 
+        string player_id;
         uint aadhaar;
         address payable player;
         string team_id;
@@ -28,9 +28,9 @@ contract main{
 
     struct Team{
         string team_id;
-        string region_id;             
+        string region_id;
         string leader;
-		uint quest_count;
+		    uint quest_count;
         uint completed_quests_team;
         uint team_rewards;
         Tier team_tier;
@@ -50,10 +50,10 @@ contract main{
 
     function string_check(string memory str1, string memory str2) pure internal returns (bool) {
         return (keccak256(abi.encodePacked(str1)) == keccak256(abi.encodePacked(str2)));
-    }   
+    }
 
     function createGuildMaster(address payable _address,string memory _id,uint _aadhaar,string memory _region,string memory _name) public{
-        require(msg.sender==admin,'Forbidden! Only admin has this previlege.');      
+        require(msg.sender==admin,'Forbidden! Only admin has this previlege.');
         guildMasters[_region] = GuildMaster(_address,_id,_aadhaar,_region,_name);
         guildMasterIDs[_address] = _region;
     }
@@ -65,15 +65,15 @@ contract main{
     function membership(string memory _id) public{
         string memory region = guildMasterIDs[msg.sender];
         require(msg.sender==guildMasters[region].master,'Only guildmaster can access this!');
-        require(!string_check(players[_id].player_id,''),'Player doesnot exist!');        
+        require(!string_check(players[_id].player_id,''),'Player doesnot exist!');
         players[_id].region_id = guildMasters[region].region_id;
-    } 
+    }
 
     function createPlayer(string memory _id,uint _aadhaar,string memory _name) public {
 		require(string_check(players[_id].player_id,''),'This Player ID is not available');
-        players[_id] = Player( _id,_aadhaar,msg.sender,'','',0,0,0,Tier.Bronze,_name);   
+        players[_id] = Player( _id,_aadhaar,msg.sender,'','',0,0,0,Tier.Bronze,_name);
         playerIDs[msg.sender] = _id;
-    } 
+    }
 
     function getPlayer(string memory _id) public view returns (string memory){
         return players[_id].name;
@@ -110,9 +110,9 @@ contract main{
 
     function addMember(string memory _id) public{
         string memory pid = playerIDs[msg.sender];
-        string memory tid = players[pid].team_id;        
-        require(string_check(pid,teams[tid].leader),'Only leader has access to this function!');	
-		require(!string_check(players[_id].player_id,''),'Player doesnot exist!');        
+        string memory tid = players[pid].team_id;
+        require(string_check(pid,teams[tid].leader),'Only leader has access to this function!');
+		require(!string_check(players[_id].player_id,''),'Player doesnot exist!');
         require(!string_check('',players[_id].region_id),'Players should have assigned a region before joining a team!');
 		require(!string_check(pid,_id),'Leader cant add himself/herself to the team as a member!');
 		require(!string_check(players[_id].team_id,players[pid].team_id),'Player is already in your team!');
@@ -125,7 +125,7 @@ contract main{
     function removeMember(string memory _id) public returns(bool){
         string memory pid = playerIDs[msg.sender];
         string memory tid = players[pid].team_id;
-        require(!string_check(players[_id].player_id,''),'Player doesnot exist!');        
+        require(!string_check(players[_id].player_id,''),'Player doesnot exist!');
         require(string_check(pid,teams[tid].leader) || string_check(pid,_id) ,'Removal can be done either by leader or himself/herself');
         players[_id].team_id='';
         for(uint ind=0;ind<teamMembers[tid].length;ind++){
@@ -152,7 +152,7 @@ contract main{
         delete teams[tid];
         players[pid].team_id='';
     }
-	
+
 	function changeTier(string memory _region,string memory _id,Tier _tier,bool _isTeam) public{
 		require(msg.sender==guildMasters[_region].master,'Only GuildMaster can access this function');
 		if(_isTeam){
@@ -164,7 +164,7 @@ contract main{
 			players[_id].player_tier=_tier;
 		}
 	}
-	
+
 	function updateStats(string memory _region,string memory _id,uint _reward,bool _isTeam,bool _ishero) public{
 		require(msg.sender==guildMasters[_region].master,'Only GuildMaster can access this function');
 		if(_isTeam){
@@ -197,11 +197,11 @@ contract quest{
     Tier public reqd_tier;
     string public description;
     address payable[] public heroes;
-    mapping(string=>bool) public isahero;
+    mapping(string=>string) public heroProof;
     mapping(string=>address payable) public players;
     enum State { Posted, Live, Disapproved, Aborted, Ended }
     State public state;
-	
+
 
     constructor(address payable _questCreator,address  payable _guildMaster,string memory _time,string memory _region,Tier _tier,string memory _desc) public payable{
         from = _questCreator;
@@ -215,7 +215,7 @@ contract quest{
 
     function string_check(string memory str1, string memory str2) pure internal returns (bool) {
         return (keccak256(abi.encodePacked(str1)) == keccak256(abi.encodePacked(str2)));
-    } 
+    }
 
     function addParticipant(string memory _id,string memory _region,Tier _tier) public{
         require(string_check(region,_region),'This is not available in your region!');
@@ -226,7 +226,7 @@ contract quest{
         participants.push(_id);
         players[_id] = msg.sender;
     }
-	
+
 	function getParticipants() public view returns(string[] memory){
 		return(participants);
 	}
@@ -254,13 +254,13 @@ contract quest{
         state = State.Disapproved;
     }
 
-    function addHero(string memory _id) public{
+    function addHero(string memory _id,string memory _ipfs) public{
         require(msg.sender==guildMaster,'Only GuildMaster can access it!');
         require(state == State.Live,'Quest is not live!');
         require(players[_id]!=address(0),'Player doesnt exist!');
-        require(isahero[_id]==false,'Already a hero!');
+        require(string_check(heroProof[_id],''),'Already a hero!');
         heroes.push(players[_id]);
-        isahero[_id] = true;
+        heroProof[_id] = _ipfs;
     }
 
     function completeQuest() public payable{
@@ -283,7 +283,7 @@ contract questStore{
 
     function string_check(string memory str1, string memory str2) pure internal returns (bool) {
         return (keccak256(abi.encodePacked(str1)) == keccak256(abi.encodePacked(str2)));
-    }  
+    }
 
     function createQuest(string memory _qid,address payable _guildMaster,string memory _time,string memory _region,quest.Tier _tier,string memory _desc) public payable{
 	    require(questsById[_qid]==address(0),"Quest ID already in use");
@@ -291,7 +291,7 @@ contract questStore{
 	    questsById[_qid] = Quest;
 	    questsByRegion[_region].push(_qid);
 	}
-	
+
 	function clearQuest(string memory _qid,string memory _rid) public returns(bool){
 	    require(questsById[_qid]!=address(0),"Quest is unknown!");
 	    for(uint ind=0;ind<questsByRegion[_rid].length;ind++){

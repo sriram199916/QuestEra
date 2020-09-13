@@ -1,34 +1,41 @@
 import React, { Component } from 'react';
 import {Form,Button,Container,Dropdown,DropdownButton} from 'react-bootstrap';
 import main from './main'
-import quest from './quest'; 
+import quest from './quest';
 import questStore from './questStore';
 import web3 from "./web3"
-//IPFS to be implemented
+import Sbar from './searchBar'
+
 class QTools extends Component {
+
+  goTo=(path)=>{
+  const url=window.location.href.split('/')
+  return url[0]+path
+  }
+  
       onIdChange=(event)=>{
         this.setState({qid:event.target.value})
       }
-    
+
       onRegionChange=(event)=>{
         this.setState({region:event.target.value})
       }
-    
+
       onTierChange=(eventKey,event)=>{
         event.preventDefault()
         const tiers=['Bronze','Silver','Gold','Diamond','Platinum']
         this.setState({tier:parseInt(eventKey)})
         this.setState({disp:tiers[eventKey]})
       }
-    
+
       onRewardChange=(event)=>{
         this.setState({reward:event.target.value})
       }
-    
+
       onDescChange=(event)=>{
         this.setState({desc:event.target.value})
       }
-    
+
       onSubmit= async (event)=>{
         event.preventDefault()
         const gmaster=await main.methods.guildMasters(this.state.region).call()
@@ -57,6 +64,10 @@ class QTools extends Component {
   render() {
       return (
         <div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+  <a class="navbar-brand" href={this.goTo('/')}>QuestEra</a>
+  </nav>
+  <Sbar/>
           <Container>
             <Form onSubmit={this.onSubmit} >
               <Form.Group controlId="formBasicEmail">

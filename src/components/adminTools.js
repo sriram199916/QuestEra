@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
 import {Form,Button,Container} from 'react-bootstrap';
 import main from './main';
+import Sbar from './searchBar'
 
 class ATools extends Component {
+
+  goTo=(path)=>{
+  const url=window.location.href.split('/')
+  return url[0]+path
+  }
 
     onAddressChange=(event)=>{
         this.setState({gma:event.target.value})
@@ -28,7 +34,7 @@ class ATools extends Component {
         event.preventDefault()
         await main.methods.createGuildMaster(this.state.gma,this.state.gid,this.state.aadhaar,this.state.region,this.state.name).send({from:this.props.account})
       }
-      
+
     constructor(props) {
         super(props)
         this.state = {
@@ -36,13 +42,17 @@ class ATools extends Component {
           gid:'',
           name:'',
           aadhaar:'',
-          region:''  
+          region:''
         }
       }
 
   render() {
       return (
         <div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+  <a class="navbar-brand" href={this.goTo('/')}>QuestEra</a>
+  </nav>
+  <Sbar/>
           <Container>
             <Form onSubmit={this.onSubmit}>
               <Form.Group controlId="formBasicEmail">

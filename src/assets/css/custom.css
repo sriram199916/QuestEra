@@ -1,0 +1,15 @@
+.open{
+    background-image: url('../home.gif');
+    background-size: cover;
+    width:100%;
+    height:100%;
+    padding:0;
+    margin:0;
+}
+
+.titlecard{
+    background-image: url('../title.png');
+    background-size: cover;
+    width:35%;
+    height:23%;
+}
