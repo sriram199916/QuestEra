@@ -56,17 +56,27 @@ class Sbar extends Component{
         const reward=await Quest.methods.rewards().call()
         const time=await Quest.methods.time().call()
         const region=await Quest.methods.region().call()
+        if(region===null)
+        notice='Quest doesnot exist!'
+        else{
         const tier=await Quest.methods.reqd_tier().call()
         const state=await Quest.methods.state().call()
         const desc=await Quest.methods.description().call()
         notice="Rewards: "+web3.utils.fromWei(reward.toString())+" Ethers\nTime: "+time+"\nRegion: "+region+"\nTier: "+tiers[tier]+"\nStatus: "+qstats[state]+"\nDescription: "+desc
         const participants=await Quest.methods.getParticipants().call()
-        notice=notice+"\nParticipants: "+participants+"\nHeroes:"
+        notice=notice+"\nParticipants: "+participants+"\nHeroes (Followed by hashKey):"
         const heroes=await Quest.methods.getHeroes().call()
-        heroes.map(async (address)=>{
-          const id=await main.methods.playerIDs(address).call()
-          notice=notice+'\n'+id
-        })
+        for(var itr=0;itr<heroes.length;itr++)
+        {
+          const id=await main.methods.playerIDs(heroes[itr]).call()
+          const player=await main.methods.players(id).call()
+          let proof=await Quest.methods.heroProof(id).call()
+          if(proof==='')
+          proof=await Quest.methods.heroProof(player.team_id).call()
+          notice=notice+ "\n"+id+' : '+proof
+        }
+        notice=notice+'\n\n To preview proof of Hero visit: https://ipfs.infura.io/ipfs/hashKey'
+      }
         alert(notice)
       }
 
